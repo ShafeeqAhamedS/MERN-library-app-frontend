@@ -1,113 +1,163 @@
-import React, { useState } from 'react';
-import './EditBooksComponent.css';
-import axios from 'axios';
-
-const EditBooksComponent = () => {
-  const [bookInfo, setBookInfo] = useState({
-    bookName: '',
-    authorName: '',
-    ISBN: '',
-    genre: ''
-  });
-
-  const bookNameHandler = (event) => {
-    setBookInfo({
-      ...bookInfo,
-      bookName: event.target.value
-    });
-  };
-
-  const authorNameHandler = (event) => {
-    setBookInfo({
-      ...bookInfo,
-      authorName: event.target.value
-    });
-  };
-
-  const ISBNHandler = (event) => {
-    setBookInfo({
-      ...bookInfo,
-      ISBN: event.target.value
-    });
-  };
-
-  const genreHandler = (event) => {
-    setBookInfo({
-      ...bookInfo,
-      genre: event.target.value
-    });
-  };
-
-  const ISBNValidator = () => {
-    
-  };
-
-  const formSubmitHandler = (event) => {
-    
-  };
+import React, { Component } from 'react'
+import './EditBooksComponent.css'
 
 
+class EditBooksComponent extends Component {
+    constructor(props)
+    {
+        super(props)
 
-  const { bookName, authorName, ISBN, genre } = bookInfo;
+        this.state = {
+            bookName : '',
+            authorName : '',
+            ISBN:'',
+            genre:''
+        }
+    }
 
-  return (
-    <form className="form-container" onSubmit={formSubmitHandler}>
-      <h2>Updating books</h2>
+    bookNameHandler = (event) =>{
+        this.setState({
+            bookName : event.target.value
+        })
+    }
 
-      <div className="form-group">
-        <label>ISBN Number</label>
-        <input
-          type="text"
-          pattern="[0-9]{13}"
-          placeholder="Give the ISBN Number"
-          value={ISBN}
-          onChange={ISBNHandler}
-          required
-        />
-      </div>
-      <div>
-        <button onClick={ISBNValidator}>Check</button>
-      </div>
+    authorNameHandler = (event) =>{
+        this.setState({
+            authorName : event.target.value
+        })
+    }
 
-      <div className="form-group">
-        <label>Book Name</label>
-        <input
-          type="text"
-          placeholder="Enter the book name"
-          value={bookName}
-          onChange={bookNameHandler}
-          required
-        />
-      </div>
+    ISBNHandler = (event) =>{
+        this.setState({
+            ISBN : event.target.value
+        })
+    }
 
-      <div className="form-group">
-        <label>Author Name</label>
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Enter the author name"
-          value={authorName}
-          onChange={authorNameHandler}
-          required
-        />
-      </div>
+    genreHandler = (event) =>{
+        this.setState({
+            genre : event.target.value
+        })
+    }
 
-      <div className="form-group">
-        <label>Genre</label>
-        <input
-          type="text"
-          placeholder="Enter the genre"
-          value={genre}
-          onChange={genreHandler}
-          required
-        />
-      </div>
+    ISBNValidator = () =>{
+        if(this.state.ISBN.length === 13){
+            fetch('http://localhost:3500/api/v1/books/validate',{
+                method:'POST',
+                crossDomain: true,
+                headers: {
+                    'Content-type':'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                body: JSON.stringify({
+                    ISBN : this.state.ISBN
+                })
+            })
+            .then((response) => response.json())
+            .then((data) => 
+            {
+                this.setState({
+                    bookName : data.bookName,
+                    authorName: data.authorName,
+                    genre : data.genre
+                })
+            }
+        )
+        }
+    }
 
-      <div>
-        <button type="submit">Update</button>
-      </div>
-    </form>
-  );
-};
+    formSubmitHandler = (event) =>{
+        event.preventDefault()
 
-export default EditBooksComponent;
+        fetch('http://localhost:3500/api/v1/books',{
+        method:'PATCH',
+        crossDomain: true,
+        headers: {
+            'Content-type':'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+            bookName : this.state.bookName,
+            authorName : this.state.authorName,
+            ISBN:this.state.ISBN,
+            genre:this.state.genre
+        })
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log(data)
+            if (data.message)
+            {
+                alert(data.message)
+            }
+            else{
+                alert(`${this.state.bookName} is updated successfully`)
+                window.location.href = '/'
+            }
+        })
+    }
+
+  render() {
+    const {bookName, authorName, ISBN, genre} = this.state
+    return (
+        <form className='form-container' onSubmit={this.formSubmitHandler}>
+            <h2>Updating books</h2>
+
+            <div className='form-group'>
+            <label>ISBN Number</label>
+            <input
+            type='text'
+            pattern='[0-9]{13}'
+            placeholder='Give the ISBN Number'
+            value={ISBN}
+            onChange={this.ISBNHandler}
+            required
+            />
+        </div>
+        <div>
+            <button onClick={this.ISBNValidator}>Check</button>
+        </div>
+
+        <div className='form-group'>
+            <label>Book Name</label>
+            <input
+            type='text'
+            placeholder='Enter the book name'
+            value={bookName}
+            onChange={this.bookNameHandler}
+            required
+            />
+        </div>
+
+        <div className='form-group'>
+            <label>Author Name</label>
+            <input
+            type='text'
+            className='form-control'
+            placeholder='Enter the author name'
+            value={authorName}
+            onChange={this.authorNameHandler}
+            required
+            />
+        </div>
+
+        <div className='form-group'>
+            <label>Genre</label>
+            <input
+            type='text'
+            placeholder='Enter the genre'
+            value={genre}
+            onChange={this.genreHandler}
+            required
+            />
+        </div>
+
+        <div>
+            <button type='submit'>Update</button>
+        </div>
+        </form>
+        
+    )
+  }
+}
+
+export default EditBooksComponent
